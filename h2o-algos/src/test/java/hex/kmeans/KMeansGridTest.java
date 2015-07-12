@@ -6,6 +6,7 @@ import hex.Grid;
 import hex.Model;
 import org.junit.*;
 import water.DKV;
+import water.Key;
 import water.TestUtil;
 import water.fvec.Frame;
 
@@ -25,28 +26,27 @@ public class KMeansGridTest extends TestUtil {
     try {
       fr = parse_test_file("smalldata/iris/iris_wheader.csv");
 
-      // Get the Grid for this modeling class and frame
-      kmg = KMeansGrid.get(fr);
-
       // 4-dimensional hyperparameter search
       HashMap<String, Object[]> hyperParms = new HashMap<>();
 
       // Search over this range of K's
-      hyperParms.put("_k", new Integer[]{1, 2, 3, 4, 5, 6}); // Note that k==0 is illegal, and k==1 is trivial
+      hyperParms.put("k", new Integer[]{1, 2, 3, 4, 5, 6}); // Note that k==0 is illegal, and k==1 is trivial
 
       // Search over this range of the init enum
-      hyperParms.put("_init", new KMeans.Initialization[]{
+      hyperParms.put("init", new KMeans.Initialization[]{
               KMeans.Initialization.Random,
               KMeans.Initialization.PlusPlus,
               KMeans.Initialization.Furthest});
 
       // Search over this range of the init enum
-      hyperParms.put("_seed", new Long[]{0L, 1L, 123456789L, 987654321L});
+      hyperParms.put("seed", new Long[]{0L, 1L, 123456789L, 987654321L});
 
       // Create default parameters
       KMeansModel.KMeansParameters params = new KMeansModel.KMeansParameters();
       params._train = fr._key;
       // Fire off a grid search
+      // Get the Grid for this modeling class and frame
+      kmg = KMeansGrid.get(Key.<Grid>make("kmeans_grid"), fr, params, hyperParms);
       Grid.GridSearch gs = kmg.startGridSearch(params, hyperParms);
       Grid g2 = (Grid) gs.get();
       assert g2 == kmg;
@@ -73,21 +73,20 @@ public class KMeansGridTest extends TestUtil {
       fr.remove("class").remove();
       DKV.put(fr);
 
-      // Get the Grid for this modeling class and frame
-      kmg = KMeansGrid.get(fr);
-
       // Setup hyperparameter search space
       HashMap<String, Object[]> hyperParms = new HashMap<>();
-      hyperParms.put("_k", new Integer[]{3, 3, 3});
-      hyperParms.put("_init", new KMeans.Initialization[]{
+      hyperParms.put("k", new Integer[]{3, 3, 3});
+      hyperParms.put("init", new KMeans.Initialization[]{
               KMeans.Initialization.Random,
               KMeans.Initialization.Random,
               KMeans.Initialization.Random});
-      hyperParms.put("_seed", new Long[]{123456789L, 123456789L, 123456789L});
+      hyperParms.put("seed", new Long[]{123456789L, 123456789L, 123456789L});
 
       // Fire off a grid search
       KMeansModel.KMeansParameters params = new KMeansModel.KMeansParameters();
       params._train = fr._key;
+      // Get the Grid for this modeling class and frame
+      kmg = KMeansGrid.get(Key.<Grid>make("kmeans_grid"), fr, params, hyperParms);
       Grid.GridSearch gs = kmg.startGridSearch(params, hyperParms);
       Grid g2 = (Grid) gs.get();
       assert g2 == kmg;
@@ -115,23 +114,22 @@ public class KMeansGridTest extends TestUtil {
       fr.remove("class").remove();
       DKV.put(fr);
 
-      // Get the Grid for this modeling class and frame
-      kmg = KMeansGrid.get(fr);
-
       // Setup hyperparameter search space
       HashMap<String, Object[]> hyperParms = new HashMap<>();
-      hyperParms.put("_k", new Integer[]{3});
-      hyperParms.put("_init", new KMeans.Initialization[]{
+      hyperParms.put("k", new Integer[]{3});
+      hyperParms.put("init", new KMeans.Initialization[]{
               KMeans.Initialization.Random,
               KMeans.Initialization.PlusPlus,
               KMeans.Initialization.User,
               KMeans.Initialization.Furthest});
-      hyperParms.put("_seed", new Long[]{123456789L});
+      hyperParms.put("seed", new Long[]{123456789L});
 
       // Fire off a grid search
       KMeansModel.KMeansParameters params = new KMeansModel.KMeansParameters();
       params._train = fr._key;
       params._user_points = init._key;
+      // Get the Grid for this modeling class and frame
+      kmg = KMeansGrid.get(Key.<Grid>make("kmeans_grid"), fr, params, hyperParms);
       Grid.GridSearch gs = kmg.startGridSearch(params, hyperParms);
       Grid g2 = (Grid) gs.get();
       assert g2 == kmg;
@@ -160,9 +158,6 @@ public class KMeansGridTest extends TestUtil {
       fr = parse_test_file("smalldata/iris/iris_wheader.csv");
       fr.remove("class").remove();
       DKV.put(fr);
-
-      // Get the Grid for this modeling class and frame
-      kmg = KMeansGrid.get(fr);
 
       // Setup random hyperparameter search space
       HashMap<String, Object[]> hyperParms = new HashMap<>();
@@ -210,10 +205,10 @@ public class KMeansGridTest extends TestUtil {
         standardizeSpace[i] = standardizeList.get(i);
       }
 
-      hyperParms.put("_k", kSpace);
-      hyperParms.put("_init", initSpace);
-      hyperParms.put("_seed", seedSpace);
-      hyperParms.put("_standardize", standardizeSpace);
+      hyperParms.put("k", kSpace);
+      hyperParms.put("init", initSpace);
+      hyperParms.put("seed", seedSpace);
+      hyperParms.put("standardize", standardizeSpace);
 
       System.out.println("k search space: " + Arrays.toString(kSpace));
       System.out.println("max_depth search space: " + Arrays.toString(initSpace));
@@ -224,6 +219,8 @@ public class KMeansGridTest extends TestUtil {
       KMeansModel.KMeansParameters params = new KMeansModel.KMeansParameters();
       params._train = fr._key;
       if(Arrays.asList(initSpace).contains(KMeans.Initialization.User)){ params._user_points = init._key; }
+      // Get the Grid for this modeling class and frame
+      kmg = KMeansGrid.get(Key.<Grid>make("kmeans_grid"), fr, params, hyperParms);
       Grid.GridSearch gs = kmg.startGridSearch(params, hyperParms);
       Grid g2 = (Grid) gs.get();
       assert g2 == kmg;
@@ -238,16 +235,16 @@ public class KMeansGridTest extends TestUtil {
       HashMap<String, Object[]> randomHyperParms = new HashMap<>();
 
       Integer kVal = kSpace[rng.nextInt(kSpace.length)];
-      randomHyperParms.put("_k", new Integer[]{kVal});
+      randomHyperParms.put("k", new Integer[]{kVal});
 
       KMeans.Initialization initVal = initSpace[rng.nextInt(initSpace.length)];
-      randomHyperParms.put("_init", initSpace);
+      randomHyperParms.put("init", initSpace);
 
       Long seedVal = seedSpace[rng.nextInt(seedSpace.length)];
-      randomHyperParms.put("_seed", seedSpace);
+      randomHyperParms.put("seed", seedSpace);
 
       Integer standardizeVal = standardizeSpace[rng.nextInt(standardizeSpace.length)];
-      randomHyperParms.put("_standardize", standardizeSpace);
+      randomHyperParms.put("standardize", standardizeSpace);
 
       //TODO: KMeansModel kmFromGrid = (KMeansModel) g2.model(randomHyperParms).get();
 

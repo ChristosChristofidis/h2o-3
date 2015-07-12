@@ -6,6 +6,7 @@ import hex.Model;
 import java.util.*;
 import org.junit.*;
 import water.DKV;
+import water.Key;
 import water.TestUtil;
 import water.fvec.Frame;
 import water.fvec.Vec;
@@ -26,19 +27,18 @@ public class DRFGridTest extends TestUtil {
       fr.add("cylinders",old.toEnum()); // response to last column
       DKV.put(fr);
 
-      // Get the Grid for this modeling class and frame
-      drfg = DRFGrid.get(fr);
-
       // Setup hyperparameter search space
       HashMap<String,Object[]> hyperParms = new HashMap<>();
-      hyperParms.put("_ntrees",new Integer[]{20,40});
-      hyperParms.put("_max_depth",new Integer[]{10,20});
-      hyperParms.put("_mtries",new Integer[]{-1,4,5});
+      hyperParms.put("ntrees",new Integer[]{20,40});
+      hyperParms.put("max_depth",new Integer[]{10,20});
+      hyperParms.put("mtries",new Integer[]{-1,4,5});
 
       // Fire off a grid search
       DRFModel.DRFParameters params = new DRFModel.DRFParameters();
       params._train = fr._key;
       params._response_column = "cylinders";
+      // Get the Grid for this modeling class and frame
+      drfg = DRFGrid.get(Key.<Grid>make("drf_grid"), fr, params, hyperParms);
       Grid.GridSearch gs = drfg.startGridSearch(params, hyperParms);
       Grid g2 = (Grid)gs.get();
       assert g2==drfg;
@@ -69,20 +69,20 @@ public class DRFGridTest extends TestUtil {
       fr.add("economy", old); // response to last column
       DKV.put(fr);
 
-      // Get the Grid for this modeling class and frame
-      drfg = DRFGrid.get(fr);
-
       // Setup random hyperparameter search space
       HashMap<String, Object[]> hyperParms = new HashMap<>();
-      hyperParms.put("_ntrees", new Integer[]{5, 5});
-      hyperParms.put("_max_depth", new Integer[]{2, 2});
-      hyperParms.put("_mtries", new Integer[]{-1, -1});
-      hyperParms.put("_sample_rate", new Float[]{.1f, .1f});
+      hyperParms.put("ntrees", new Integer[]{5, 5});
+      hyperParms.put("max_depth", new Integer[]{2, 2});
+      hyperParms.put("mtries", new Integer[]{-1, -1});
+      hyperParms.put("sample_rate", new Float[]{.1f, .1f});
 
       // Fire off a grid search
       DRFModel.DRFParameters params = new DRFModel.DRFParameters();
       params._train = fr._key;
       params._response_column = "economy";
+
+      // Get the Grid for this modeling class and frame
+      drfg = DRFGrid.get(Key.<Grid>make("drf_grid"), fr, params, hyperParms);
       Grid.GridSearch gs = drfg.startGridSearch(params, hyperParms);
       Grid g2 = (Grid) gs.get();
       assert g2 == drfg;
@@ -112,9 +112,6 @@ public class DRFGridTest extends TestUtil {
 
       fr.add("economy (mpg)", old); // response to last column
       DKV.put(fr);
-
-      // Get the Grid for this modeling class and frame
-      drfg = DRFGrid.get(fr);
 
       // Setup random hyperparameter search space
       HashMap<String, Object[]> hyperParms = new HashMap<>();
@@ -159,15 +156,17 @@ public class DRFGridTest extends TestUtil {
       Float[] sampleRateSpace = new Float[sampleRateDim];
       for(int i=0; i<sampleRateDim; i++){ sampleRateSpace[i] = sampleRateList.get(i); }
 
-      hyperParms.put("_ntrees", ntreesSpace);
-      hyperParms.put("_max_depth", maxDepthSpace);
-      hyperParms.put("_mtries", mtriesSpace);
-      hyperParms.put("_sample_rate", sampleRateSpace);
+      hyperParms.put("ntrees", ntreesSpace);
+      hyperParms.put("max_depth", maxDepthSpace);
+      hyperParms.put("mtries", mtriesSpace);
+      hyperParms.put("sample_rate", sampleRateSpace);
 
       // Fire off a grid search
       DRFModel.DRFParameters params = new DRFModel.DRFParameters();
       params._train = fr._key;
       params._response_column = "economy (mpg)";
+      // Get the Grid for this modeling class and frame
+      drfg = DRFGrid.get(Key.<Grid>make("drf_grid"), fr, params, hyperParms);
       Grid.GridSearch gs = drfg.startGridSearch(params, hyperParms);
       Grid g2 = (Grid) gs.get();
       assert g2 == drfg;
@@ -187,16 +186,16 @@ public class DRFGridTest extends TestUtil {
       HashMap<String, Object[]> randomHyperParms = new HashMap<>();
 
       Integer ntreeVal = ntreesSpace[rng.nextInt(ntreesSpace.length)];
-      randomHyperParms.put("_ntrees", new Integer[]{ntreeVal});
+      randomHyperParms.put("ntrees", new Integer[]{ntreeVal});
 
       Integer maxDepthVal = maxDepthSpace[rng.nextInt(maxDepthSpace.length)];
-      randomHyperParms.put("_max_depth", maxDepthSpace);
+      randomHyperParms.put("max_depth", maxDepthSpace);
 
       Integer mtriesVal = mtriesSpace[rng.nextInt(mtriesSpace.length)];
-      randomHyperParms.put("_max_depth", mtriesSpace);
+      randomHyperParms.put("max_depth", mtriesSpace);
 
       Float sampleRateVal = sampleRateSpace[rng.nextInt(sampleRateSpace.length)];
-      randomHyperParms.put("_sample_rate", sampleRateSpace);
+      randomHyperParms.put("sample_rate", sampleRateSpace);
 
       //TODO: DRFModel drfFromGrid = (DRFModel) g2.model(randomHyperParms).get();
 

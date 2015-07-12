@@ -8,6 +8,8 @@ import water.H2O;
 import water.Key;
 import water.fvec.Frame;
 
+import java.util.Map;
+
 /** A Grid of Models
  *  Used to explore Model hyper-parameter space.  Lazily filled in, this object
  *  represents the potentially infinite variety of hyperparameters of a given
@@ -30,7 +32,7 @@ public class DRFGrid extends SharedTreeGrid<DRFModel.DRFParameters, DRFGrid> {
   /** @return Model name */
   @Override protected String modelName() { return MODEL_NAME; }
 
-  private static final String[] HYPER_NAMES    = ArrayUtils.append(SharedTreeGrid.HYPER_NAMES   ,new String[] { "_mtries", "_sample_rate"});
+  private static final String[] HYPER_NAMES    = ArrayUtils.append(SharedTreeGrid.HYPER_NAMES   ,new String[] { "mtries", "sample_rate"});
   private static final double[] HYPER_DEFAULTS = ArrayUtils.append(SharedTreeGrid.HYPER_DEFAULTS,new double[] {    -1    ,     2f/3f     });
 
   @Override protected String[] hyperNames() { return HYPER_NAMES; }
@@ -64,16 +66,16 @@ public class DRFGrid extends SharedTreeGrid<DRFModel.DRFParameters, DRFGrid> {
   }
 
   // Factory for returning a grid based on an algorithm flavor
-  private DRFGrid( Key key, Frame fr ) { super(key,fr); }
-  public static DRFGrid get( Frame fr ) { 
-    Key k = Grid.keyName(MODEL_NAME, fr);
+  private DRFGrid( Key key, Frame fr, DRFModel.DRFParameters params, String[] hyperNames) { super(key, fr, params, hyperNames); }
+  public static DRFGrid get( Key<Grid> destKey, Frame fr, DRFModel.DRFParameters params, Map<String,Object[]> hyperParams) {
+    Key k = destKey != null ? destKey : Grid.keyName(MODEL_NAME, fr);
     DRFGrid kmg = DKV.getGet(k);
     if( kmg != null ) return kmg;
-    kmg = new DRFGrid(k,fr);
+    kmg = new DRFGrid(k, fr, params, hyperParams.keySet().toArray(new String[hyperParams.size()]));
     DKV.put(kmg);
     return kmg;
   }
 
   /** FIXME: Rest API requirement - do not call directly */
-  public DRFGrid() { super(null, null); }
+  public DRFGrid() { super(null, null, null, null); }
 }

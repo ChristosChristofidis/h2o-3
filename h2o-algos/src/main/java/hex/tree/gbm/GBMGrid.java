@@ -8,6 +8,8 @@ import water.H2O;
 import water.Key;
 import water.fvec.Frame;
 
+import java.util.Map;
+
 /** A Grid of Models
  *  Used to explore Model hyper-parameter space.  Lazily filled in, this object
  *  represents the potentially infinite variety of hyperparameters of a given
@@ -30,8 +32,8 @@ public class GBMGrid extends SharedTreeGrid<GBMModel.GBMParameters, GBMGrid> {
 
   @Override protected String modelName() { return MODEL_NAME; }
 
-  private static final String[] HYPER_NAMES    = ArrayUtils.append(SharedTreeGrid.HYPER_NAMES   ,new String[] {    "_distribution"               , "_learn_rate"});
-  private static final double[] HYPER_DEFAULTS = ArrayUtils.append(SharedTreeGrid.HYPER_DEFAULTS,new double[] { Distribution.Family.AUTO.ordinal(),     0.1f     });
+  private static final String[] HYPER_NAMES    = ArrayUtils.append(SharedTreeGrid.HYPER_NAMES   ,new String[] { "distribution", "learn_rate"});
+  private static final double[] HYPER_DEFAULTS = ArrayUtils.append(SharedTreeGrid.HYPER_DEFAULTS,new double[] { Distribution.Family.AUTO.ordinal(), 0.1f });
 
   @Override protected String[] hyperNames() { return HYPER_NAMES; }
 
@@ -64,18 +66,18 @@ public class GBMGrid extends SharedTreeGrid<GBMModel.GBMParameters, GBMGrid> {
   }
 
   // Factory for returning a grid based on an algorithm flavor
-  private GBMGrid( Key key, Frame fr ) {
-    super(key,fr);
+  private GBMGrid( Key key, Frame fr, GBMModel.GBMParameters params, String[] hyperNames) {
+    super(key, fr, params, hyperNames);
   }
 
-  public static GBMGrid get( Frame fr ) { 
-    Key k = Grid.keyName(MODEL_NAME, fr);
+  public static GBMGrid get(Key<Grid> destKey, Frame fr, GBMModel.GBMParameters params, Map<String,Object[]> hyperParams) {
+    Key k = destKey != null ? destKey : Grid.keyName(MODEL_NAME, fr);
     GBMGrid kmg = DKV.getGet(k);
     if( kmg != null ) return kmg;
-    kmg = new GBMGrid(k,fr);
+    kmg = new GBMGrid(k, fr, params, hyperParams.keySet().toArray(new String[hyperParams.size()]));
     DKV.put(kmg);
     return kmg;
   }
   /** FIXME: Rest API requirement - do not call directly */
-  public GBMGrid() { super(null, null); }
+  public GBMGrid() { super(null, null, null, null); }
 }

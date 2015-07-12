@@ -7,6 +7,7 @@ import hex.Model;
 import java.util.*;
 import org.junit.*;
 import water.DKV;
+import water.Key;
 import water.TestUtil;
 import water.fvec.Frame;
 import water.fvec.Vec;
@@ -27,20 +28,19 @@ public class GBMGridTest extends TestUtil {
       fr.add("cylinders",old.toEnum()); // response to last column
       DKV.put(fr);
 
-      // Get the Grid for this modeling class and frame
-      gbmg = GBMGrid.get(fr);
-
       // Setup hyperparameter search space
       HashMap<String,Object[]> hyperParms = new HashMap<>();
-      hyperParms.put("_ntrees",new Integer[]{5,10});
-      hyperParms.put("_distribution",new Distribution.Family[] {Distribution.Family.multinomial});
-      hyperParms.put("_max_depth",new Integer[]{1,2,5});
-      hyperParms.put("_learn_rate",new Float[]{0.01f,0.1f,0.3f});
+      hyperParms.put("ntrees",new Integer[]{5,10});
+      hyperParms.put("distribution",new Distribution.Family[] {Distribution.Family.multinomial});
+      hyperParms.put("max_depth",new Integer[]{1,2,5});
+      hyperParms.put("learn_rate",new Float[]{0.01f,0.1f,0.3f});
 
       // Fire off a grid search
       GBMModel.GBMParameters params = new GBMModel.GBMParameters();
       params._train = fr._key;
       params._response_column = "cylinders";
+      // Get the Grid for this modeling class and frame
+      gbmg = GBMGrid.get(Key.<Grid>make("gbm_grid"), fr, params, hyperParms);
       Grid.GridSearch gs = gbmg.startGridSearch(params, hyperParms);
       Grid g2 = (Grid)gs.get();
       assert g2==gbmg;
@@ -71,20 +71,19 @@ public class GBMGridTest extends TestUtil {
       fr.add("economy", old); // response to last column
       DKV.put(fr);
 
-      // Get the Grid for this modeling class and frame
-      gbmg = GBMGrid.get(fr);
-
       // Setup random hyperparameter search space
       HashMap<String, Object[]> hyperParms = new HashMap<>();
-      hyperParms.put("_distribution", new Distribution.Family[]{Distribution.Family.gaussian});
-      hyperParms.put("_ntrees", new Integer[]{5, 5});
-      hyperParms.put("_max_depth", new Integer[]{2, 2});
-      hyperParms.put("_learn_rate", new Float[]{.1f, .1f});
+      hyperParms.put("distribution", new Distribution.Family[]{Distribution.Family.gaussian});
+      hyperParms.put("ntrees", new Integer[]{5, 5});
+      hyperParms.put("max_depth", new Integer[]{2, 2});
+      hyperParms.put("learn_rate", new Float[]{.1f, .1f});
 
       // Fire off a grid search
       GBMModel.GBMParameters params = new GBMModel.GBMParameters();
       params._train = fr._key;
       params._response_column = "economy";
+      // Get the Grid for this modeling class and frame
+      gbmg = GBMGrid.get(Key.<Grid>make("gbm_grid"), fr, params, hyperParms);
       Grid.GridSearch gs = gbmg.startGridSearch(params, hyperParms);
       Grid g2 = (Grid) gs.get();
       assert g2 == gbmg;
@@ -115,12 +114,9 @@ public class GBMGridTest extends TestUtil {
       fr.add("economy (mpg)", old); // response to last column
       DKV.put(fr);
 
-      // Get the Grid for this modeling class and frame
-      gbmg = GBMGrid.get(fr);
-
       // Setup random hyperparameter search space
       HashMap<String, Object[]> hyperParms = new HashMap<>();
-      hyperParms.put("_distribution", new Distribution.Family[]{Distribution.Family.gaussian});
+      hyperParms.put("distribution", new Distribution.Family[]{Distribution.Family.gaussian});
 
       // Construct random grid search space
       Random rng = new Random();
@@ -155,14 +151,16 @@ public class GBMGridTest extends TestUtil {
       Float[] learnRateSpace = new Float[learnRateDim];
       for(int i=0; i<learnRateDim; i++){ learnRateSpace[i] = learnRateList.get(i); }
 
-      hyperParms.put("_ntrees", ntreesSpace);
-      hyperParms.put("_max_depth", maxDepthSpace);
-      hyperParms.put("_learn_rate", learnRateSpace);
+      hyperParms.put("ntrees", ntreesSpace);
+      hyperParms.put("max_depth", maxDepthSpace);
+      hyperParms.put("learn_rate", learnRateSpace);
 
       // Fire off a grid search
       GBMModel.GBMParameters params = new GBMModel.GBMParameters();
       params._train = fr._key;
       params._response_column = "economy (mpg)";
+      // Get the Grid for this modeling class and frame
+      gbmg = GBMGrid.get(Key.<Grid>make("gbm_grid"), fr, params, hyperParms);
       Grid.GridSearch gs = gbmg.startGridSearch(params, hyperParms);
       Grid g2 = (Grid) gs.get();
       assert g2 == gbmg;
@@ -179,16 +177,16 @@ public class GBMGridTest extends TestUtil {
 
       // Pick a random model from the grid
       HashMap<String, Object[]> randomHyperParms = new HashMap<>();
-      randomHyperParms.put("_distribution", new Distribution.Family[]{Distribution.Family.gaussian});
+      randomHyperParms.put("distribution", new Distribution.Family[]{Distribution.Family.gaussian});
 
       Integer ntreeVal = ntreesSpace[rng.nextInt(ntreesSpace.length)];
-      randomHyperParms.put("_ntrees", new Integer[]{ntreeVal});
+      randomHyperParms.put("ntrees", new Integer[]{ntreeVal});
 
       Integer maxDepthVal = maxDepthSpace[rng.nextInt(maxDepthSpace.length)];
-      randomHyperParms.put("_max_depth", maxDepthSpace);
+      randomHyperParms.put("max_depth", maxDepthSpace);
 
       Float learnRateVal = learnRateSpace[rng.nextInt(learnRateSpace.length)];
-      randomHyperParms.put("_learn_rate", learnRateSpace);
+      randomHyperParms.put("learn_rate", learnRateSpace);
 
       //TODO: GBMModel gbmFromGrid = (GBMModel) g2.model(randomHyperParms).get();
 
